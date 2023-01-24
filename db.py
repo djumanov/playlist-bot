@@ -8,8 +8,9 @@ class PlaylistDatabase:
         self.playlists = self.db.table('playlists')
         self.songs = self.db.table('songs')
         self.playlist_songs = self.db.table('playlist_songs')
+        self.status = self.db.table('status')
 
-    def add_user(self, user_id: int, username: str) -> bool:
+    def add_user(self, user_id: str, username: str) -> bool:
         """
         Add a new user to the users table
         """
@@ -17,6 +18,7 @@ class PlaylistDatabase:
             return False
         new_user = {'user_id': user_id, 'username': username}
         self.users.insert(new_user)
+        self.status.insert({'user_id': user_id, 'status': 'regular'})
         return True
     
     def view_users(self) -> list:
@@ -32,6 +34,21 @@ class PlaylistDatabase:
         q = Query()
         return self.users.get(q.user_id == user_id)
 
+    def get_status(self, user_id):
+        """
+        get user status
+        """
+        q = Query()
+        return self.status.get(q.user_id == user_id)['status']
+    
+    def update_status(self, user_id: str, status: str):
+        """
+        Change user status
+        """
+        q = Query()
+        return self.status.update({'status': status}, q.user_id == user_id)
+
+
     def add_playlist(self, playlist_name: str, user_id: int):
         """
         Add a new playlist to the playlists table
@@ -44,11 +61,12 @@ class PlaylistDatabase:
         id = self.playlists.insert(new_playlist)
         return self.songs.get(doc_id=id)
 
-    def view_playlists(self) -> list:
+    def view_playlists(self, user_id: str) -> list:
         """
         Get all playlists
         """
-        return self.playlists.all()
+        q = Query()
+        return self.playlists.search(q.user_id == user_id)
 
     def is_playlist(self, playlist_name: str, user_id: str) -> bool:
         """
