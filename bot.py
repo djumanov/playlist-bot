@@ -83,7 +83,6 @@ def status_handler(update: Update, context: CallbackContext):
         create_playlist(update=update, context=context)
     
 
-
 def main() -> None:
     """Start the bot."""
     # updater 
