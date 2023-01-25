@@ -49,7 +49,7 @@ def view_playlists(update: Update, context: CallbackContext):
         keyboars.append([btn])
     if keyboars:
         update.message.reply_text("<b>Playlistlaringiz!</b>", parse_mode='HTML', \
-            reply_markup=keyboars)
+            reply_markup=InlineKeyboardMarkup(inline_keyboard=keyboars))
     else:
         update.message.reply_text("<b>Sizning playlistingiz yo'q ekan!</b>", parse_mode='HTML')
 
@@ -79,10 +79,12 @@ def create_playlist(update: Update, context: CallbackContext):
 def status_handler(update: Update, context: CallbackContext):
     user = update.message.chat
     status = db.get_status(user_id=user.id)
+
     if status == "create playlist":
         create_playlist(update=update, context=context)
+    else:
+        update.message.reply_html(text="<i>siz boshqa buyruq tanladingiz!</i>")
     
-
 
 def main() -> None:
     """Start the bot."""
@@ -95,13 +97,13 @@ def main() -> None:
     dispatcher.add_handler(handler=CommandHandler(command='start', callback=start))
 
     # message handler
-    dispatcher.add_handler(handler=MessageHandler(filters=filters.Text(strings=['Playlists']), \
+    dispatcher.add_handler(handler=MessageHandler(filters=filters.Filters.text('Playlists'), \
         callback=view_playlists))
-    dispatcher.add_handler(handler=MessageHandler(filters=filters.Text(strings=['Create Playlist']), \
+    dispatcher.add_handler(handler=MessageHandler(filters=filters.Filters.text('Create Playlist'), \
         callback=select_playlist_name))
 
     # all message handler
-    dispatcher.add_handler(handler=MessageHandler(filters=filters.ALL, callback=status_handler))
+    dispatcher.add_handler(handler=MessageHandler(filters=filters.Filters.all, callback=status_handler))
 
     updater.start_polling()
     updater.idle()
