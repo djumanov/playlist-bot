@@ -3,7 +3,7 @@ from tinydb import TinyDB, Query
 
 class PlaylistDatabase:
     def __init__(self, db_name: str) -> None:
-        self.db = TinyDB(db_name)
+        self.db = TinyDB(db_name, indent=4, separators=(',', ':'))
         self.users = self.db.table('users')
         self.playlists = self.db.table('playlists')
         self.songs = self.db.table('songs')

@@ -4,7 +4,9 @@ from telegram import (
     Update, 
     ReplyKeyboardMarkup,
     InlineKeyboardMarkup,
-    InlineKeyboardButton
+    InlineKeyboardButton,
+    InlineQueryResultArticle,
+    InputTextMessageContent,
 )
 from telegram.ext import (
     Updater,
@@ -13,6 +15,7 @@ from telegram.ext import (
     CommandHandler,
     MessageHandler,
     filters,
+    InlineQueryHandler,
 )
 from db import PlaylistDatabase
 
@@ -42,16 +45,10 @@ def view_playlists(update: Update, context: CallbackContext):
     View playlists
     """
     user = update.message.chat
-    keyboars = []
-    for playlist in db.view_playlists(user.id):
-        playlist_name = playlist['playlist_name']
-        btn = InlineKeyboardButton(text=playlist_name, callback_data=f'{playlist_name}|{user.id}')
-        keyboars.append([btn])
-    if keyboars:
-        update.message.reply_text("<b>Playlistlaringiz!</b>", parse_mode='HTML', \
-            reply_markup=InlineKeyboardMarkup(inline_keyboard=keyboars))
-    else:
-        update.message.reply_text("<b>Sizning playlistingiz yo'q ekan!</b>", parse_mode='HTML')
+    btn = InlineKeyboardButton(text="Playlists", switch_inline_query_current_chat="")
+    keyboars = [[btn]]
+    
+    update.message.reply_text("<b>Sizning playlistingiz yo'q ekan!</b>", parse_mode='HTML', reply_markup=InlineKeyboardMarkup(keyboars))
 
 
 def select_playlist_name(update: Update, context: CallbackContext):
@@ -85,6 +82,24 @@ def status_handler(update: Update, context: CallbackContext):
     else:
         update.message.reply_html(text="<i>siz boshqa buyruq tanladingiz!</i>")
     
+def inlinequery(update, context):
+    """Handle the inline query."""
+    query = update.inline_query.query
+
+    if query == "":
+        return
+
+    results = list()
+
+    results.append(
+        InlineQueryResultArticle(
+            id=query.upper(),
+            title='Caps',
+            input_message_content=InputTextMessageContent(query.upper())
+        )
+    )
+
+    context.bot.answer_inline_query(update.inline_query.id, results)
 
 def main() -> None:
     """Start the bot."""
@@ -104,6 +119,9 @@ def main() -> None:
 
     # all message handler
     dispatcher.add_handler(handler=MessageHandler(filters=filters.Filters.all, callback=status_handler))
+    
+    # inline query handler
+    dispatcher.add_handler(handler=InlineQueryHandler(inlinequery))
 
     updater.start_polling()
     updater.idle()
