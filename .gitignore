@@ -9,6 +9,7 @@ __pycache__/
 .vscode/
 # C extensions
 *.so
+token.sh
 
 # Distribution / packaging
 .Python
